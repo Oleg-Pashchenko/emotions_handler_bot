@@ -2,22 +2,14 @@
 
 {% block content %}
 <!-- Здесь размещается контент страницы -->
-<div class="text-center">
-<h3>Случайная история</h3>
-    </div>
-    <div class="container mt-1 mb-3">
-        <div class="card mx-auto mt-3" style="width: 80vw; max-width: 400px;">
-            <img src="https://placekitten.com/400/200" style="width: 400px; height: 150px" class="card-img-top img-fluid" alt="Изображение">
-            <div class="card-body">
-                <h5 class="card-title">Как дед схавал ежа и при этом не пернул</h5>
-                <p class="card-text">Дата: 01.01.2023</p>
-                <p class="card-text">Создатель: John Doe</p>
-            </div>
-        </div>
-    </div>
-<hr/>
+
 <div class="text-center">
 <h3>Истории в хронологическом порядке</h3>
+    {% for story in stories %}
+    {% set data = story %}
+    {% include "story.html" %}
+{% endfor %}
+
     </div>
 
 {% endblock %}

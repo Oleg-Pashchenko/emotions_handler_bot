@@ -11,7 +11,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container">
-        <a href='/' class="navbar-brand" href="#">Для cочной <span id="heart">c</span>  <span id="heart2">❤️</span></a>
+        <a href='/' class="navbar-brand" href="#">Для cочной <span id="heart">c</span> <span id="heart2">❤️</span></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -28,7 +28,10 @@
 <div class="container mt-4">
     <!-- Основное содержимое сайта будет здесь -->
     <div class="alert alert-warning" role="alert">
-       {{citate}}
+        {{citate}}
+    </div>
+    <div id="search-results" class="container  mt-1 mb-3">
+        <!-- Здесь будут отображаться результаты поиска -->
     </div>
 
     {% block content %}
@@ -51,6 +54,52 @@
     });
 </script>
 <script>
+    // Функция для отправки POST-запроса и отображения результатов
+    function search() {
+        var searchTerm = document.querySelector('input[type="search"]').value;
+        var searchResultsContainer = document.getElementById('search-results');
+
+        // Очистить контейнер результатов
+        searchResultsContainer.innerHTML = '';
+
+        // Отправить POST-запрос на сервер
+        $.ajax({
+            type: 'POST',
+            url: '/get-preview', // Замените на ваш URL
+            data: { search: searchTerm },
+            success: function (data) {
+                if (data && data.length > 0) {
+                    var heading = document.createElement('h3');
+                    heading.innerHTML = 'Найденные результаты:';
+                    searchResultsContainer.appendChild(heading);
+                    // Если есть результаты, отобразить их
+                    data.forEach(function (result) {
+                        var link = document.createElement('a');
+                        link.href = result.link;
+                        link.innerText = result.text;
+
+                        var resultItem = document.createElement('div');
+                        resultItem.appendChild(link);
+
+                        searchResultsContainer.appendChild(resultItem);
+                    });
+                } else {
+                    // Если результатов нет, отобразить сообщение
+                    searchResultsContainer.innerHTML = 'Нет результатов по вашему запросу.';
+                }
+            },
+            error: function () {
+                // Обработка ошибок, если не удается отправить запрос
+                searchResultsContainer.innerHTML = 'Ошибка при выполнении запроса.';
+            }
+        });
+    }
+
+    // Обработка события отправки формы поиска
+    $('form.d-flex').submit(function (e) {
+        e.preventDefault(); // Предотвратить отправку формы
+        search(); // Вызвать функцию поиска
+    });
     // Функция для обновления класса элемента form в зависимости от размера экрана
     function updateFormClass() {
         var windowWidth = $(window).width(); // Получаем ширину окна

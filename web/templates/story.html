@@ -5,7 +5,7 @@
     {{ data.title }}
 </h3>
 </div>
-{% if data.content_type == "photo" %}
+{% if data.content_type == "png" %}
 
 {% for i in data.content_paths %}
 
@@ -17,7 +17,7 @@
 {% endfor %}
 {% endif %}
 
-{% if data.content_type == "video" %}
+{% if data.content_type == "mp4" %}
 {% for i in data.content_paths %}
 <div class="container text-center">
         <video style="max-width: 350px" class="mx-auto mb-3" controls>
@@ -30,7 +30,7 @@
 
 
 
-{% if data.content_type == "audio" %}
+{% if data.content_type == "oga" %}
 {% for i in data.content_paths %}
 
     <div class="container text-center">

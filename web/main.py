@@ -1,6 +1,6 @@
 import random
 
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, request
 import os
 
 # Получаем путь к папке, где находится запущенный скрипт
@@ -33,51 +33,25 @@ citates = [
     "То, чего вы не можете вспомнить, не стоит и вспоминать. (Д. Шелтон)",
     "Что не хочешь помнить, то всегда помнишь. (Рэй Брэдбери)",
 ]
-a = 3
-stories = [
-    {
-        'title': 'История с гс',
-        'content_paths': ['2768090.oga'],
-        'content_type': 'audio',
-        'date': '01.01.2023',
-    },
-    {
-        'title': 'История с историей',
-        'content_paths': ['8350504.mp4'],
-        'content_type': 'video',
-        'date': '02.01.2023',
-    },
-    {
-        'title': 'История с видосами',
-        'content_type': 'video',
-        'content_paths': ['8350504.mp4', '6812397.mp4'],
-        'date': '03.01.2023',
-    },
-    {
-        'title': 'История с фотками',
-        'content_type': 'photo',
-        'content_paths': ['4080294.png', '4845016.png'],
-        'date': '04.01.2023',
-    },
-]
+
 app.context_processor(lambda: dict(citate=random.choice(citates)))
 
-
+import db
 @app.route('/')
 def main():
-    return render_template('index.html')
-
-
-@app.route('/story')
-def story():
-    return render_template('story.html')
+    random_story = db.get_story()
+    stories_db = db.get_all_stories()
+    return render_template('index.html', stories=stories_db, random_story=random_story)
 
 
 
+@app.route('/get-preview', methods=['POST'])
+def preview():
+    search_term = request.form.get('search')
+    return [{'text': 'Тест', 'link': '/blog/1'}]
 
-@app.route('/blog')
-def blog():
-    return render_template('blog.html', stories=stories)
+
+
 
 
 if __name__ == '__main__':

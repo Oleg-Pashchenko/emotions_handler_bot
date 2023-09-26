@@ -1,72 +1,61 @@
 import random
 
 from aiogram import types
-
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 from aiogram import F
+
 from main import bot
 from bot import dp
-from handlers import menu
+from misc import db
 
-new_event_btn_text = 'Новое событие'
-old_event_btn_text = 'Привязать к событию'
-its_old_event_btn_text = 'Все же это уже созанное событие ;)'
-its_new_event_btn_text = 'Все же это новое событие ;)'
-
-new_or_old_event_markup = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[[KeyboardButton(text=new_event_btn_text)],
-                                                                              [KeyboardButton(
-                                                                                  text=old_event_btn_text)],
-                                                                              [KeyboardButton(text=menu.back_to_menu)]])
-its_old_event_markup = ReplyKeyboardMarkup(resize_keyboard=True,
-                                           keyboard=[[KeyboardButton(text=its_old_event_btn_text)],
-                                                     [KeyboardButton(text=menu.back_to_menu)]])
-its_new_event_markup = ReplyKeyboardMarkup(resize_keyboard=True,
-                                           keyboard=[[KeyboardButton(text=its_new_event_btn_text)],
-                                                     KeyboardButton(text=menu.back_to_menu)])
+class Form(StatesGroup):
+    filename = State()
+    event = State()
+    date = State()
 
 
-@dp.message(F.content_type.in_({'voice', 'video', 'photo', 'video_note'}))
-async def handle_photo_and_video(message: types.Message):
+@dp.message(Form.filename)
+async def handle_photo_and_video(message: types.Message, state: FSMContext):
     if message.content_type == types.ContentType.PHOTO:
         file_id, ext = message.photo[-1].file_id, 'png'
     elif message.content_type == types.ContentType.VIDEO:
         file_id, ext = message.video.file_id, 'mp4'
     elif message.content_type == types.ContentType.VOICE:
         file_id, ext = message.voice.file_id, 'oga'
-    else:
+    elif message.content_type == types.ContentType.VIDEO_NOTE:
         file_id, ext = message.video_note.file_id, 'mp4'
+    else:
+        await message.answer("Некорректный формат файла!")
+        return
     file_info = await bot.get_file(file_id)
     file_path = file_info.file_path
     downloaded_file = await bot.download_file(file_path)
-    with open(f'files/{random.randint(1000000, 10000000)}.{ext}', 'wb') as new_file:
+    filename = f'web/static/files/{random.randint(1000000, 10000000)}.{ext}'
+    await state.update_data(filename=filename)
+    with open(filename, 'wb') as new_file:
         new_file.write(downloaded_file.read())
+    await state.set_state(Form.event)
     await message.answer(
-        f"Вложение получено!\nВыбери это новое событие или это событие уже относится к какому-то блогу ранее созданному:",
-        reply_markup=new_or_old_event_markup)
+        f"Вложение получено!\nКак назовем?")
 
 
-@dp.message(lambda m: m == new_event_btn_text or m == its_new_event_btn_text)
-async def new_event_action(message: types.Message) -> None:
-    await message.answer(
-        "Введи название блога в который сохранить эту историю\n\nПояснение: самая простая аналогия это день и событие. Если не знаешь как назвать блог можешь назвать его датой - 21.08.2022.\nУже внутри блога будут события.\n\nБлог - объедененные воедино события.\nТак введи все же название:",
-        reply_markup=its_old_event_markup)
+@dp.message(Form.event)
+async def new_event_action(message: types.Message, state: FSMContext) -> None:
+    await state.update_data(name=message.text)
+
+    await message.answer("Почти все. Введи дату события в формате (dd.mm.yyyy):")
+    await state.set_state(Form.date)
 
 
-@dp.message(lambda m: m == old_event_btn_text or m == its_old_event_markup)
-async def old_event_action(message: types.Message) -> None:
-    await message.answer("Выбери блог к которому отнести это событие:", reply_markup=its_new_event_markup)
-
-
-@dp.message()
-async def write_blog_name_action(message: types.Message) -> None:
-    pass
-
-
-@dp.message()
-async def write_event_name_action(message: types.Message) -> None:
-    pass
-
-
-@dp.message()
-async def event_saved_action(message: types.Message) -> None:
-    pass
+@dp.message(Form.date)
+async def write_date_action(message: types.Message, state: FSMContext) -> None:
+    date_s = message.text
+    date = date_s.split('.')
+    if date[0].isdigit() and date[1].isdigit() and date[2].isdigit() and len(date[0]) == 2 and len(date[1]) == 2 and len(date[2]) == 4:
+        data = await state.get_data()
+        db.save(data['filename'], data['name'], date_s)
+        await message.answer(f"Сохранено! Нажмите /start")
+        await state.clear()
+    else:
+        await message.answer("Некорректный формат!")
