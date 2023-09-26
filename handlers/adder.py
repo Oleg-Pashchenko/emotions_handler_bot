@@ -30,15 +30,17 @@ async def handle_photo_and_video(message: types.Message, state: FSMContext):
         return
     file_info = await bot.get_file(file_id)
     file_path = file_info.file_path
-    downloaded_file = await bot.download_file(file_path)
-    filename = f'web/static/files/{random.randint(1000000, 10000000)}.{ext}'
-    await state.update_data(filename=filename)
-    with open(filename, 'wb') as new_file:
-        new_file.write(downloaded_file.read())
-    await state.set_state(Form.event)
-    await message.answer(
-        f"Вложение получено!\nКак назовем?")
-
+    try:
+        downloaded_file = await bot.download_file(file_path)
+        filename = f'web/static/files/{random.randint(1000000, 10000000)}.{ext}'
+        await state.update_data(filename=filename)
+        with open(filename, 'wb') as new_file:
+            new_file.write(downloaded_file.read())
+        await state.set_state(Form.event)
+        await message.answer(
+            f"Вложение получено!\nКак назовем?")
+    except:
+        await message.answer("Файл пока слишком большой! Но разработчик обещал починить как только выйдет из запоя!")
 
 @dp.message(Form.event)
 async def new_event_action(message: types.Message, state: FSMContext) -> None:
