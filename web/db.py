@@ -33,5 +33,5 @@ def get_all_stories():
             'date': e[2]
         })
     conn.close()
-    return elms
+    return d
 
