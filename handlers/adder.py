@@ -17,20 +17,21 @@ class Form(StatesGroup):
 
 @dp.message(Form.filename)
 async def handle_photo_and_video(message: types.Message, state: FSMContext):
-    if message.content_type == types.ContentType.PHOTO:
-        file_id, ext = message.photo[-1].file_id, 'png'
-    elif message.content_type == types.ContentType.VIDEO:
-        file_id, ext = message.video.file_id, 'mp4'
-    elif message.content_type == types.ContentType.VOICE:
-        file_id, ext = message.voice.file_id, 'oga'
-    elif message.content_type == types.ContentType.VIDEO_NOTE:
-        file_id, ext = message.video_note.file_id, 'mp4'
-    else:
-        await message.answer("Некорректный формат файла!")
-        return
-    file_info = await bot.get_file(file_id)
-    file_path = file_info.file_path
     try:
+        if message.content_type == types.ContentType.PHOTO:
+            file_id, ext = message.photo[-1].file_id, 'png'
+        elif message.content_type == types.ContentType.VIDEO:
+            file_id, ext = message.video.file_id, 'mp4'
+        elif message.content_type == types.ContentType.VOICE:
+            file_id, ext = message.voice.file_id, 'oga'
+        elif message.content_type == types.ContentType.VIDEO_NOTE:
+            file_id, ext = message.video_note.file_id, 'mp4'
+        else:
+            await message.answer("Некорректный формат файла!")
+            return
+        file_info = await bot.get_file(file_id)
+        file_path = file_info.file_path
+
         downloaded_file = await bot.download_file(file_path)
         filename = f'web/static/files/{random.randint(1000000, 10000000)}.{ext}'
         await state.update_data(filename=filename)
