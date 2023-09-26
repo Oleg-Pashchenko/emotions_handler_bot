@@ -41,7 +41,8 @@ async def handle_photo_and_video(message: types.Message, state: FSMContext):
         await message.answer(
             f"Вложение получено!\nКак назовем?")
     except:
-        await message.answer("Файл пока слишком большой! Но разработчик обещал починить как только выйдет из запоя!")
+        await state.clear()
+        await message.answer("Нажми /start\nФайл пока слишком большой! Но разработчик обещал починить как только выйдет из запоя!")
 
 @dp.message(Form.event)
 async def new_event_action(message: types.Message, state: FSMContext) -> None:
