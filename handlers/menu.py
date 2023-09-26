@@ -30,7 +30,7 @@ async def command_start_handler(message: Message) -> None:
 
 @dp.message(lambda m: m.text == on_site_btn_text)
 async def view_on_site_action(message: types.Message) -> None:
-    await message.answer("Посмотреть все истории ты можешь на сайте:\nhttp://juicy-and-seekness.ru/")
+    await message.answer("Посмотреть все истории ты можешь на сайте:\nhttp://juicy-and-seedless.ru/")
 
 
 @dp.message(lambda m: m.text == add_story_btn_text)
